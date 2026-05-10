@@ -1,8 +1,8 @@
 from kivy.app import App
 from kivy.uix.label import Label
 
-class MyApp(App):
+class FootballApp(App):
     def build(self):
-        return Label(text="Football App работает!")
+        return Label(text="Football App Works!")
 
-MyApp().run()
+FootballApp().run()
