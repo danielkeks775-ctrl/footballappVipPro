@@ -11,5 +11,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Test
-        run: echo "workflow works"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk
+          pip install --upgrade pip
+          pip install buildozer cython kivy
+
+      - name: Test Buildozer
+        run: |
+          buildozer --version
