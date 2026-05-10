@@ -1,28 +1,15 @@
-    - name: Install Android SDK (FIX JAVA 17)
-      run: |
-        sudo apt update
-        sudo apt install -y openjdk-17-jdk wget unzip
+name: Build APK
 
-        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-        export PATH=$JAVA_HOME/bin:$PATH
+on:
+  workflow_dispatch:
 
-        java -version
+jobs:
+  build:
+    runs-on: ubuntu-22.04
 
-        mkdir -p $HOME/android-sdk/cmdline-tools
-        cd $HOME/android-sdk/cmdline-tools
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip
-
-        mv cmdline-tools latest
-
-        export ANDROID_HOME=$HOME/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-
-        yes | sdkmanager --licenses || true
-
-        sdkmanager "platform-tools"
-        sdkmanager "platforms;android-33"
-        sdkmanager "build-tools;33.0.2" || true
-
-        yes | sdkmanager --licenses || true
+    - name: Show status
+      run: echo "WORKFLOW IS ACTIVE"
