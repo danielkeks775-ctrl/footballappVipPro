@@ -8,39 +8,55 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
-          git zip unzip openjdk-17-jdk \
-          autoconf libtool pkg-config \
-          zlib1g-dev libncurses5-dev libffi-dev libssl-dev
+      - name: Install system deps
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk \
+          python3-pip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libffi-dev libssl-dev
 
-    - name: Set Java 17 explicitly
-      run: |
-        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
-        echo "$JAVA_HOME/bin" >> $GITHUB_PATH
-        java -version
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython kivy
 
-    - name: Install Buildozer
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython kivy
+      # ===== ANDROID SDK FIX (ВАЖНО) =====
+      - name: Install Android SDK
+        run: |
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
-    - name: Clean old builds
-      run: |
-        rm -rf .buildozer
-        rm -rf ~/.buildozer
-        rm -rf ~/.android
+          cd $ANDROID_SDK_ROOT
 
-    - name: Build APK
-      run: |
-        buildozer android debug
+          curl -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip cmdline.zip -d cmdline-tools
+
+          mv cmdline-tools/cmdline-tools cmdline-tools/latest
+
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+
+          # Авто-ЛИЦЕНЗИИ (без вопросов Accept)
+          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses || true
+
+          # СТАБИЛЬНЫЕ компоненты (НЕ 37!)
+          sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.0"
+
+          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses || true
+
+      - name: Build APK
+        run: |
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+
+          buildozer android debug
